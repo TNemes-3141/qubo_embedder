@@ -1,12 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:qubo_embedder/qubo_embedder.dart';
+import 'package:tuple/tuple.dart';
 
 void main() {
-  test('adds one to input values', () {
-    final calculator = Calculator();
-    expect(calculator.addOne(2), 3);
-    expect(calculator.addOne(-7), -6);
-    expect(calculator.addOne(0), 1);
+  test('test', () {
+    final hamiltonian = [
+      [0.0, 1.0, 2.0],
+      [0.0, 1.0, 2.0],
+      [0.0, 0.0, 2.0],
+    ];
+
+    expect(Utils.hamiltonianToMap(hamiltonian), 0);
   });
 }
