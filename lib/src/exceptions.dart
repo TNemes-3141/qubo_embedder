@@ -1,6 +1,5 @@
 enum InvalidOperation {
   pairVariableSmallerThanPrimaryVariable,
-  quboEntryDoesNotExist,
 }
 
 enum DataFormatError {
@@ -43,8 +42,6 @@ class InvalidOperationException extends QuboEmbedderException {
     switch (operation) {
       case InvalidOperation.pairVariableSmallerThanPrimaryVariable:
         return "Pair variable index must be higher or equal to the index of the primary variable.";
-      case InvalidOperation.quboEntryDoesNotExist:
-        return "QUBO entry does not exist.";
       default:
         return "Attempted to execute an invalid operation.";
     }
