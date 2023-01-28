@@ -25,8 +25,8 @@ class Sampler {
     var terminate = false;
 
     while (!terminate) {
-      orderedSolutions[Calculator.energy(hamiltonian, solutionVector)] =
-          solutionVector;
+      var energy = Calculator.energy(hamiltonian, solutionVector);
+      orderedSolutions[energy] = solutionVector.deepCopy();
 
       terminate = solutionVector.increment();
     }
