@@ -15,4 +15,29 @@ void main() {
     final hamiltonian = Hamiltonian.fromQubo(qubo);
     print(hamiltonian.matrix);
   });
+
+  test('vector test', () {
+    final solutionVector = SolutionVector.fromList([0, 1, 1, 0]);
+
+    print(solutionVector.vector);
+  });
+
+  test('energy test', () {
+    final hamiltonian = Hamiltonian.fromList([
+      [-8.0, 8.0, 8.0, 8.0, 0.5, 0.5, 8.0, 0.5, 0.5],
+      [0.0, -8.0, 8.0, 0.5, 8.0, 0.5, 0.5, 8.0, 0.5],
+      [0.0, 0.0, -8.0, 0.5, 0.5, 8.0, 0.5, 0.5, 8.0],
+      [0.0, 0.0, 0.0, -8.0, 8.0, 8.0, 8.0, 0.5, 0.5],
+      [0.0, 0.0, 0.0, 0.0, -8.0, 8.0, 0.5, 8.0, 0.5],
+      [0.0, 0.0, 0.0, 0.0, 0.0, -8.0, 0.0, 0.5, 8.0],
+      [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -8.0, 8.0, 8.0],
+      [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -8.0, 8.0],
+      [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -8.0]
+    ]);
+
+    var results = Sampler.simulate(hamiltonian, recordLength: 5);
+    for (var entry in results.entries()) {
+      print(entry);
+    }
+  });
 }
