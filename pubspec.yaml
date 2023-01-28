@@ -1,6 +1,6 @@
 name: qubo_embedder
-description: A new Flutter package project.
-version: 0.0.1
+description: An unofficial library to embed and send QUBO (quadratic unconstrained binary optimization) problems to DWave System quantum annealing solvers.
+version: 0.1.0
 homepage: https://github.com/Totemi1324/qubo_embedder
 
 environment:
