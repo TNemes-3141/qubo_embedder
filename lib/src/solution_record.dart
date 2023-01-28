@@ -26,6 +26,19 @@ class SolutionRecord {
       yield entry;
     }
   }
+
+  @override
+  String toString() {
+    String content = "   energy\tsample\toccurrences\n";
+    var counter = 1;
+
+    for (var entry in _entries) {
+      content += "($counter) $entry\n";
+      counter++;
+    }
+
+    return content;
+  }
 }
 
 class SolutionRecordEntry {
@@ -34,4 +47,9 @@ class SolutionRecordEntry {
   final int numOccurrences;
 
   SolutionRecordEntry(this.energy, this.solutionVector, this.numOccurrences);
+
+  @override
+  String toString() {
+    return "$energy\t$solutionVector\tx$numOccurrences";
+  }
 }

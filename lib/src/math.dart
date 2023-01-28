@@ -104,8 +104,12 @@ class SolutionVector {
 
     _updateVector(current);
 
-    return cursor == -1;
+    return cursor == -1 && current[0] == 0;
   }
+
+  SolutionVector deepCopy() => SolutionVector.fromList(vector);
+
+  void _updateVector(List<int> newList) => _vector = Vector.fromList(newList);
 
   static void _checkListFormat(List<int> list) {
     for (var entry in list) {
@@ -115,7 +119,20 @@ class SolutionVector {
     }
   }
 
-  void _updateVector(List<int> newList) => _vector = Vector.fromList(newList);
+  @override
+  String toString() {
+    String content = "[";
+    var list = vector;
+    var counter = 0;
+
+    for (var qubit in list) {
+      content += "q$counter: $qubit, ";
+      counter++;
+    }
+
+    content += "]";
+    return content;
+  }
 }
 
 class Calculator {
