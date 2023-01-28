@@ -1,3 +1,8 @@
-## 0.0.1
+## 0.1.0
 
-* TODO: Describe initial release.
+* First prerelease containing the essential features and data structures
+    * `Sampler`
+    * `Qubo`
+    * `Hamiltonian`
+    * `SolutionVector`
+    * `SolutionRecord` and `SolutionRecordEntry`
