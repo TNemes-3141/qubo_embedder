@@ -1,15 +1,16 @@
 import 'dart:collection' show SplayTreeMap;
 import 'dart:math' show pow;
 
-import './math.dart';
-import './solution_record.dart';
-import './exceptions.dart';
+import '../solver.dart';
+import '../math.dart';
+import '../solution_record.dart';
+import '../exceptions.dart';
 
-class Sampler {
-  static SolutionRecord simulate(
-    Hamiltonian hamiltonian, {
-    int? recordLength,
-  }) {
+class Simulator extends Solver {
+  Simulator() : super(SolverType.simulator);
+
+  @override
+  SolutionRecord sample(Hamiltonian hamiltonian, {int? recordLength}) {
     final combinations = pow(2, hamiltonian.dimension).round();
     recordLength ??= combinations;
 

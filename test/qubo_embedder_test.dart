@@ -35,7 +35,7 @@ void main() {
       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -8.0]
     ]);
 
-    var results = Sampler.simulate(hamiltonian, recordLength: 5);
+    var results = Solver.simulate(hamiltonian, recordLength: 5);
 
     print(results);
   });
