@@ -1,19 +1,26 @@
 import 'dart:math' show pow;
 
 import '../solver.dart';
-import '../math.dart';
+import '../qubo.dart';
 import '../solution_record.dart';
 import '../exceptions.dart';
+import '../api/dwave_api.dart';
 
 class DwaveSampler extends Solver {
+  final String region;
   final String token;
   final String solver;
 
-  DwaveSampler(this.token, this.solver) : super(SolverType.dwaveSampler);
+  late final ApiParams _params;
+
+  DwaveSampler(this.region, this.token, this.solver)
+      : super(SolverType.dwaveSampler) {
+    _params = ApiParams(apiRegion: region, apiToken: token);
+  }
 
   @override
-  SolutionRecord sample(Hamiltonian hamiltonian, {int? recordLength}) {
-    final combinations = pow(2, hamiltonian.dimension).round();
+  Future<SolutionRecord> sampleQubo(Qubo qubo, {int? recordLength}) async {
+    final combinations = pow(2, qubo.size).round();
     recordLength ??= combinations;
 
     if (recordLength > combinations) {
@@ -21,7 +28,18 @@ class DwaveSampler extends Solver {
         InvalidOperation.recordLengthLargerThanPossibleCombinations,
       );
     }
+    if (qubo.size > 4) {
+      throw InvalidOperationException(
+        InvalidOperation.dwaveSamplingLargerThanFourNotSupported,
+      );
+    }
 
-    return SolutionRecord(recordLength);
+    if (!await DwaveApi.isSolverAvailable(_params, solver)) {
+      throw DwaveApiException(DwaveApiError.solverNotAvailable);
+    }
+
+    final record = SolutionRecord(recordLength);
+
+    return record;
   }
 }

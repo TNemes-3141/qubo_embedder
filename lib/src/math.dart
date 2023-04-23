@@ -29,18 +29,29 @@ class Hamiltonian {
 
   int get dimension => _matrix.rowCount;
 
+  double getEntry(int rowIndex, int columnIndex) {
+    if (rowIndex >= _matrix.rowCount || rowIndex < 0) {
+      throw IndexOutOfRangeException("rowIndex");
+    }
+    if (columnIndex >= _matrix.columnCount || columnIndex < 0) {
+      throw IndexOutOfRangeException("columnIndex");
+    }
+
+    return _matrix.getRow(rowIndex).elementAt(columnIndex);
+  }
+
   static void _checkListFormat(List<List<double>> list) {
     final size = list.length;
 
     for (var rowIndex = 0; rowIndex < list.length; rowIndex++) {
       final row = list[rowIndex];
       if (row.length != size) {
-        throw DataFormattingException(DataFormatError.listNotSquare);
+        throw DataFormattingException(DataFormatting.listNotSquare);
       }
       for (var i = 0; i < rowIndex; i++) {
         if (row[i] != 0) {
           throw DataFormattingException(
-            DataFormatError.lowerTriangleEntryNotZero,
+            DataFormatting.lowerTriangleEntryNotZero,
           );
         }
       }
@@ -114,7 +125,7 @@ class SolutionVector {
   static void _checkListFormat(List<int> list) {
     for (var entry in list) {
       if (entry != 0 && entry != 1) {
-        throw DataFormattingException(DataFormatError.entryNotBinary);
+        throw DataFormattingException(DataFormatting.entryNotBinary);
       }
     }
   }

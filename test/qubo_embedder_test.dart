@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qubo_embedder/qubo_embedder.dart';
 
-import 'package:ml_linalg/linalg.dart';
-
 void main() {
   test('test', () {
     final qubo = Qubo(size: 4);
@@ -35,8 +33,17 @@ void main() {
       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -8.0]
     ]);
 
-    var results = Solver.simulate(hamiltonian, recordLength: 5);
+    var results = Solver.simulator()
+        .sampleQubo(Qubo.fromHamiltonian(hamiltonian), recordLength: 5);
 
     print(results);
+  });
+
+  test('dwave api tets', () async {
+    const apiRegion = "eu-central-1";
+    const apiToken = "";
+    const params = ApiParams(apiRegion: apiRegion, apiToken: apiToken);
+
+    await DwaveApi.getAvailableQpuSolvers(params);
   });
 }

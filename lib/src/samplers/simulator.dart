@@ -3,6 +3,7 @@ import 'dart:math' show pow;
 
 import '../solver.dart';
 import '../math.dart';
+import '../qubo.dart';
 import '../solution_record.dart';
 import '../exceptions.dart';
 
@@ -10,8 +11,8 @@ class Simulator extends Solver {
   Simulator() : super(SolverType.simulator);
 
   @override
-  SolutionRecord sample(Hamiltonian hamiltonian, {int? recordLength}) {
-    final combinations = pow(2, hamiltonian.dimension).round();
+  Future<SolutionRecord> sampleQubo(Qubo qubo, {int? recordLength}) async {
+    final combinations = pow(2, qubo.size).round();
     recordLength ??= combinations;
 
     if (recordLength > combinations) {
@@ -19,6 +20,8 @@ class Simulator extends Solver {
         InvalidOperation.recordLengthLargerThanPossibleCombinations,
       );
     }
+
+    final hamiltonian = Hamiltonian.fromQubo(qubo);
 
     var orderedSolutions = SplayTreeMap<double, SolutionVector>();
     var solutionVector =
@@ -32,7 +35,7 @@ class Simulator extends Solver {
       terminate = solutionVector.increment();
     }
 
-    var record = SolutionRecord(recordLength);
+    final record = SolutionRecord(recordLength);
 
     for (var entry in orderedSolutions.entries) {
       var full = record.addEntry(

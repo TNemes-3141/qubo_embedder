@@ -1,5 +1,6 @@
 import 'package:tuple/tuple.dart';
 
+import './math.dart';
 import './exceptions.dart';
 
 class Qubo {
@@ -7,6 +8,22 @@ class Qubo {
   final Map<Tuple2<int, int>, double> _qubo = {};
 
   Qubo({required this.size});
+
+  factory Qubo.fromHamiltonian(Hamiltonian hamiltonian) {
+    final matrix = hamiltonian.matrix;
+    final qubo = Qubo(size: hamiltonian.dimension);
+
+    for (var i = 0; i < matrix.length; i++) {
+      for (var j = i; j < matrix[i].length; j++) {
+        final element = matrix[i][j];
+        if (element != 0) {
+          qubo.addEntry(i, j, value: element);
+        }
+      }
+    }
+
+    return qubo;
+  }
 
   void addEntry(
     int variableIndex,

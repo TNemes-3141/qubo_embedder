@@ -1,6 +1,7 @@
 import './samplers/dwave_sampler.dart';
+import './samplers/simulator.dart';
 
-import './math.dart';
+import './qubo.dart';
 import './solution_record.dart';
 
 enum SolverType {
@@ -14,10 +15,13 @@ abstract class Solver {
   Solver(this.type);
 
   static DwaveSampler dwaveSampler({
+    required String region,
     required String token,
     required String solver,
   }) =>
-      DwaveSampler(token, solver);
+      DwaveSampler(region, token, solver);
 
-  SolutionRecord sample(Hamiltonian hamiltonian, {int? recordLength});
+  static Simulator simulator() => Simulator();
+
+  Future<SolutionRecord> sampleQubo(Qubo qubo, {int? recordLength});
 }

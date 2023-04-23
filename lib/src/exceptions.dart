@@ -3,12 +3,18 @@ enum InvalidOperation {
   providedValueNotBinary,
   recordLengthLargerThanPossibleCombinations,
   recordIsFull,
+  dwaveSamplingLargerThanFourNotSupported,
 }
 
-enum DataFormatError {
+enum DataFormatting {
   listNotSquare,
   lowerTriangleEntryNotZero,
   entryNotBinary,
+}
+
+enum DwaveApiError {
+  incorrectApiToken,
+  solverNotAvailable,
 }
 
 abstract class QuboEmbedderException implements Exception {
@@ -53,6 +59,8 @@ class InvalidOperationException extends QuboEmbedderException {
         return "Requested record length cannot exceed the number of possible combinations.";
       case InvalidOperation.recordIsFull:
         return "Capacity of the record is exhausted.";
+      case InvalidOperation.dwaveSamplingLargerThanFourNotSupported:
+        return "Using the DWave sampler on problem sizes larger than 4 is currently not supported.";
       default:
         return "Attempted to execute an invalid operation.";
     }
@@ -60,7 +68,7 @@ class InvalidOperationException extends QuboEmbedderException {
 }
 
 class DataFormattingException extends QuboEmbedderException {
-  final DataFormatError dataFormatError;
+  final DataFormatting dataFormatError;
 
   DataFormattingException(this.dataFormatError);
 
@@ -70,14 +78,61 @@ class DataFormattingException extends QuboEmbedderException {
   @override
   String get message {
     switch (dataFormatError) {
-      case DataFormatError.listNotSquare:
+      case DataFormatting.listNotSquare:
         return "List for Hamiltonian must resemble a square matrix (number of columns = number of rows).";
-      case DataFormatError.lowerTriangleEntryNotZero:
+      case DataFormatting.lowerTriangleEntryNotZero:
         return "Entries in the lower triangle of the list have to be zero.";
-      case DataFormatError.entryNotBinary:
+      case DataFormatting.entryNotBinary:
         return "Entries can be either 0 or 1 (binary).";
       default:
         return "Provided incorrectly formatted data.";
     }
   }
+}
+
+class DwaveApiException extends QuboEmbedderException {
+  final DwaveApiError dwaveApiError;
+
+  DwaveApiException(this.dwaveApiError);
+
+  @override
+  String get exceptionId => "DwaveApiException";
+
+  @override
+  String get message {
+    switch (dwaveApiError) {
+      case DwaveApiError.incorrectApiToken:
+        return "Provided API key is incorrect, nonexistent or does not authorize for the usage of the DWave API.";
+      case DwaveApiError.solverNotAvailable:
+        return "Provided solver is currently offline or does not exist.";
+      default:
+        return "Dwave API failed.";
+    }
+  }
+}
+
+class NetworkException extends QuboEmbedderException {
+  final int statusCode;
+  final String? msg;
+
+  NetworkException(this.statusCode, this.msg);
+
+  @override
+  String get exceptionId => "NetworkException";
+
+  @override
+  String get message =>
+      "Request to the REST API returned status code ($statusCode). ${msg == null || msg!.isEmpty ? "No message." : "Message:\n$msg"}";
+}
+
+class RequiredArgumentNullException extends QuboEmbedderException {
+  final String paramName;
+
+  RequiredArgumentNullException(this.paramName);
+
+  @override
+  String get exceptionId => "RequiredArgumentNullException";
+
+  @override
+  String get message => "Required argument '$paramName' must not be null.";
 }
