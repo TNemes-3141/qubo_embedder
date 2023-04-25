@@ -4,12 +4,14 @@ enum InvalidOperation {
   recordLengthLargerThanPossibleCombinations,
   recordIsFull,
   dwaveSamplingLargerThanFourNotSupported,
+  minorEmbeddingNotSupported,
 }
 
 enum DataFormatting {
   listNotSquare,
   lowerTriangleEntryNotZero,
   entryNotBinary,
+  edgeNotTwoEntries,
 }
 
 enum DwaveApiError {
@@ -61,6 +63,8 @@ class InvalidOperationException extends QuboEmbedderException {
         return "Capacity of the record is exhausted.";
       case InvalidOperation.dwaveSamplingLargerThanFourNotSupported:
         return "Using the DWave sampler on problem sizes larger than 4 is currently not supported.";
+      case InvalidOperation.minorEmbeddingNotSupported:
+        return "Creating a minor embedding is not yet implemented.";
       default:
         return "Attempted to execute an invalid operation.";
     }
@@ -81,9 +85,11 @@ class DataFormattingException extends QuboEmbedderException {
       case DataFormatting.listNotSquare:
         return "List for Hamiltonian must resemble a square matrix (number of columns = number of rows).";
       case DataFormatting.lowerTriangleEntryNotZero:
-        return "Entries in the lower triangle of the list have to be zero.";
+        return "Entries in the lower triangle of the list must be zero.";
       case DataFormatting.entryNotBinary:
         return "Entries can be either 0 or 1 (binary).";
+      case DataFormatting.edgeNotTwoEntries:
+        return "Graph edges as List<int> must have exactly two entries (i.e. the two nodes the edge connects).";
       default:
         return "Provided incorrectly formatted data.";
     }

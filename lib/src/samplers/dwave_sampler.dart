@@ -5,6 +5,7 @@ import '../qubo.dart';
 import '../solution_record.dart';
 import '../exceptions.dart';
 import '../api/dwave_api.dart';
+import '../api/embedder.dart';
 
 class DwaveSampler extends Solver {
   final String region;
@@ -37,6 +38,9 @@ class DwaveSampler extends Solver {
     if (!await DwaveApi.isSolverAvailable(_params, solver)) {
       throw DwaveApiException(DwaveApiError.solverNotAvailable);
     }
+
+    final graphInfo = await DwaveApi.getSolverGraph(_params, solver);
+    final embedding = Embedder.embedQubo(qubo, graphInfo, EmbeddingType.pseudo);
 
     final record = SolutionRecord(recordLength);
 

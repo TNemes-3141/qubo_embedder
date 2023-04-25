@@ -22,10 +22,10 @@ class DwaveApi {
       "X-Auth-Token": params.apiToken,
       "Content-type": "application/json",
     });
+    _validate(response);
 
     try {
       final jsonMap = json.decode(response.body);
-      _validate(response);
 
       final result = <QpuSolverInfo>[];
       for (var map in jsonMap) {
@@ -59,14 +59,43 @@ class DwaveApi {
       "X-Auth-Token": params.apiToken,
       "Content-type": "application/json",
     });
+    _validate(response);
 
     try {
       final jsonMap = json.decode(response.body);
-      _validate(response);
 
       return jsonMap["status"] == Constants.solversRemote.status.online;
     } on FormatException {
       return false;
+    }
+  }
+
+  static Future<SolverGraphInfo> getSolverGraph(
+      ApiParams params, String apiSolver) async {
+    final uri = Uri.https(
+      "${params.apiRegion}.$apiDomain",
+      "$apiPath/solvers/remote/$apiSolver",
+      {"filter": "none,+properties.qubits,+properties.couplers"},
+    );
+
+    final response = await http.get(uri, headers: {
+      "X-Auth-Token": params.apiToken,
+      "Content-type": "application/json",
+    });
+    _validate(response);
+
+    try {
+      final jsonMap = json.decode(response.body);
+
+      return SolverGraphInfo(
+          qubits: (jsonMap["properties"]["qubits"] as List<dynamic>)
+              .map((e) => e as int)
+              .toList(),
+          couplers: (jsonMap["properties"]["couplers"] as List<dynamic>)
+              .map((e) => (e as List<dynamic>).map((e) => e as int).toList())
+              .toList());
+    } on FormatException {
+      throw NetworkException(response.statusCode, response.body);
     }
   }
 
@@ -93,6 +122,13 @@ class QpuSolverInfo {
   final int numQubits;
 
   const QpuSolverInfo({required this.name, required this.numQubits});
+}
+
+class SolverGraphInfo {
+  final List<int> qubits;
+  final List<List<int>> couplers;
+
+  const SolverGraphInfo({required this.qubits, required this.couplers});
 }
 
 extension HttpStatusCodes on int {
