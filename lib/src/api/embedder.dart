@@ -53,17 +53,6 @@ class PseudoEmbedding extends Embedding {
     final lin = <int, double>{};
     final quad = <List<int>, double>{};
 
-    var allQubitsAreZero = true;
-    for (var i = 0; i < qubo.size; i++) {
-      if (qubo.getEntry(i, i) != null) {
-        allQubitsAreZero = false;
-        break;
-      }
-    }
-    if (allQubitsAreZero) {
-      return PseudoEmbedding._(lin, quad, EmbeddingType.qubo);
-    }
-
     final Map<int, int> logicalToPhysical = {};
     final memory = SplayTreeMap<int, Set<int>>.fromIterable(
       solverGraph.qubits,
