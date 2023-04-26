@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Removed an unnecessary check in the pseudo-embedding for QUBO problems that returns an empty embedding if all logical qubits have a coefficient of 0.
+
 ## 0.2.0
 
 * Implemented the DWave sampler, DWave API interface and pseudo-embedding algorithms to allow sending QUBO problems to real quantum annealers!

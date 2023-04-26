@@ -1,6 +1,6 @@
 name: qubo_embedder
 description: An unofficial library to embed and send optimization (QUBO, Ising) problems to DWave System quantum annealing solvers.
-version: 0.2.0
+version: 0.2.1
 homepage: https://github.com/Totemi1324/qubo_embedder
 
 environment:
