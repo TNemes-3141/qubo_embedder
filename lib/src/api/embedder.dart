@@ -16,8 +16,10 @@ enum EmbeddingType {
 
 class Embedder {
   static Embedding embedQubo(
-      Qubo qubo, SolverGraphInfo graphInfo, EmbeddingAlgorithm type) {
-    switch (type) {
+      {required Qubo qubo,
+      required SolverGraphInfo graphInfo,
+      required EmbeddingAlgorithm algorithm}) {
+    switch (algorithm) {
       case EmbeddingAlgorithm.pseudo:
         return PseudoEmbedding.createQubo(qubo, graphInfo);
       case EmbeddingAlgorithm.minor:

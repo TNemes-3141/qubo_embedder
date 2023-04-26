@@ -40,8 +40,11 @@ class DwaveSampler extends Solver {
     }
 
     final graphInfo = await DwaveApi.getSolverGraph(_params, solver);
-    final embedding =
-        Embedder.embedQubo(qubo, graphInfo, EmbeddingAlgorithm.pseudo);
+    final embedding = Embedder.embedQubo(
+      qubo: qubo,
+      graphInfo: graphInfo,
+      algorithm: EmbeddingAlgorithm.pseudo,
+    );
 
     if (embedding.isEmpty) {
       throw ProcessFailedException(ProcessFailed.noEmbeddingFound);

@@ -67,7 +67,7 @@ void main() {
 
     final info = await DwaveApi.getSolverGraph(params, "Advantage_system5.3");
 
-    final embedding = Embedder.embedQubo(qubo, info, EmbeddingAlgorithm.pseudo);
+    final embedding = Embedder.embedQubo(qubo: qubo, graphInfo: info, algorithm: EmbeddingAlgorithm.pseudo);
 
     final subId = await DwaveApi.postEmbeddingToSolver(
         params, "Advantage_system5.3", info, embedding);

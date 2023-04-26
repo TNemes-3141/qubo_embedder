@@ -16,8 +16,8 @@ abstract class Solver {
 
   static DwaveSampler dwaveSampler({
     required String region,
-    required String token,
     required String solver,
+    required String token,
   }) =>
       DwaveSampler(region, token, solver);
 

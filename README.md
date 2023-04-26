@@ -17,7 +17,7 @@
 
 <p><br></p>
 
-**An unofficial library to embed and send QUBO (quadratic unconstrained binary optimization) problems to DWave System quantum annealing solvers.** A native Dart equivalent to the [Ocean SDK][dwave_ocean_ref].
+**An unofficial library to embed and send optimization (QUBO, Ising) problems to DWave System quantum annealing solvers.** A native Dart equivalent to the [Ocean SDK][dwave_ocean_ref].
 
 </div>
 
@@ -31,6 +31,11 @@
     - [Qubo](#qubo)
     - [Hamiltonian](#hamiltonian)
     - [SolutionVector](#solutionvector)
+    - [SolutionRecord](#solutionrecord)
+- [DWave API](#data-structures)
+    - [Interact with the API manually](#interact-with-the-api-manually)
+    - [Embedding types and algorithms](#embedding-types-and-algorithms)
+    - [Encoding and decoding](#encoding-and-decoding)
 </details>
 
 ---
@@ -42,22 +47,22 @@ Solving QUBO problems is handled by the `Solver` class which has different modes
 ### Send to remote DWave annealer solver
 
 ```
-await Solver.dwave_sampler(
-    token='[YOUR_API_TOKEN]',
-    solver='Advantage_system5.1',
-    ).sample(
-        hamiltonian,
-        record_length=5,
+await Solver.dwaveSampler(
+        region='eu-central-1'
+        solver='Advantage_system5.3',
+        token='[YOUR_API_TOKEN]',
+    ).sampleQubo(
+        qubo,
     )
 ```
 
-This takes care of the minor-embedding, API calls etc. automatically.
+This takes care of the embedding, API calls etc. automatically.
 
 ### Sample using local simulator
 
 ```
-Solver.simulator().sample(
-    hamiltonian,
+Solver.simulator().sampleQubo(
+    qubo,
     record_length=5,
 )
 ```
@@ -115,5 +120,80 @@ void main() {
 }
 ```
 
+### SolutionRecord
+
+Sampler store their solutions as entries in this record, which you can get by `entries()` and iterate over for solution details. When returned by a sampler, the entries are sorted by energy in ascending order.
+
+```
+import 'package:qubo_embedder/qubo_embedder.dart';
+
+void main() {
+    ...
+
+    for (var entry in solutionRecord.entries()) {
+        print("E=${entry.energy}\t${entry.solutionVector}\t${entry.numOccurrences}x")
+    } // E=-2.0	[q0: 0, q1: 1, q2: 1, q3: 0, ]	x142
+
+    print(solutionRecord);
+    //   energy	sample	occurrences
+    //(1) -2.0	[q0: 0, q1: 1, q2: 1, q3: 0, ]	x142
+    
+}
+```
+
+## DWave API
+
+Sometimes, pre-defined samplers aren't enough. For specific operations and scenarios not covered by `Solver`, you can use the `DwaveApi` class to gain low-level access to the [DWave REST Solver API][dwave_sapi_ref], sending and managing requests directly. 
+
+### Interact with the API manually
+
+Here, a list of currently available solvers is requested:
+
+```
+import 'package:qubo_embedder/qubo_embedder.dart';
+
+final _params = ApiParams(apiRegion: 'eu-central-1', apiToken: '[YOUR_API_TOKEN]');
+
+Future<void> main() async {
+    List<QpuSolverInfo> solvers = await DwaveApi.getAvailableQpuSolvers(_params);
+
+    print(solvers[0].name) //Advantage_system3.5
+    print(solvers[0].numQubits) //5616
+}
+```
+
+You can go from there and, for example, select the solver with the highest count of qubits available and supply it to `DwaveSampler`. Keep in mind that `DwaveApi` only offers static wrappers to selected API requests, returning an awaitable `Future`. Encoding and decoding of body properties is done automatically (see [Encoding and decoding](#encoding-and-decoding)).
+
+### Embedding types and algorithms
+
+If needed, embeddings can also be intercepted by creating it yourself. Currently supported are `PseudoEmbedding` (faster, but will only work for a problem size up to 4) and `MinorEmbedding` (slower, but works on all problems as long as the physical qubits are not exhausted), which both are descendants of the `Embedding` superclass. Embeddings can't be instantiated directly but have to be created by `Embedder`, depending on the supplied algorithm.
+
+```
+Embedder.embedQubo(
+    qubo: qubo,
+    graphInfo: graphInfo, //Retrieved from the DWave API
+    type: EmbeddingAlgorithm.pseudo,
+);
+```
+
+An embedding consists of a map of physical qubit IDs with their respective bias and a map of couplers with their respective bias.
+
+### Encoding and decoding
+
+This utility class is used by `DwaveApi` internally, but can be accessed directly as well if needed. The DWave Rest Solver API accepts and returns problem data only in bit-packed, base64-encoded form, for which the `Encoder` and `Decoder` classes offer conversion methods that utilize [the binary package][binary_ref] for performance.
+
+| _SAPI body parameter_     | _Codec_                                                                           | _Corresponding method_    |
+|---------------------------|-----------------------------------------------------------------------------------|---------------------------|
+| **Submission**            |                                                                                   |                           |
+| `data.lin`                | Base64-encoded, little-endian 8-byte floating point numbers                       | `Encoder.encodeDoubles()` |
+| `data.quad`               | Base64-encoded, little-endian 8-byte floating point numbers                       | `Encoder.encodeDoubles()` |
+| **Retreival**             |                                                                                   |                           |
+| `answer.solutions`        | Base64-encoded bits in little-endian order, each padded to end on a byte boundary | `Decoder.decodeBinary()`  |
+| `answer.energies`         | Base64-encoded, little-endian 8-byte floating point numbers                       | `Decoder.decodeDoubles()` |
+| `answer.num_occurrences`  | Base64-encoded, little-endian 4-byte integers                                     | `Decoder.decodeInts()`    |
+| `answer.active_variables` | Base64-encoded, little-endian 4-byte integers                                     | `Decoder.decodeInts()`    |
+
 [dwave_ocean_ref]: https://docs.ocean.dwavesys.com/en/stable/
 [ml_linalg_ref]: https://pub.dev/packages/ml_linalg
+[dwave_sapi_ref]: https://docs.dwavesys.com/docs/latest/doc_rest_api.html
+[binary_ref]: https://pub.dev/packages/binary
