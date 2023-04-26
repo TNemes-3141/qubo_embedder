@@ -49,9 +49,9 @@ class DwaveSampler extends Solver {
 
     final submissionId = await DwaveApi.postEmbeddingToSolver(
         _params, solver, graphInfo, embedding);
+    final solutionEntries =
+        await DwaveApi.getSolutionsForSubmission(_params, submissionId);
 
-    final record = SolutionRecord(recordLength);
-
-    return record;
+    return SolutionRecord(recordLength)..addAllEntries(solutionEntries);
   }
 }

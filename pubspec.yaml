@@ -13,6 +13,7 @@ dependencies:
   tuple: ^2.0.1
   ml_linalg: ^13.11.28
   http: ^0.13.5
+  binary: ^3.0.1
 
 dev_dependencies:
   flutter_test:

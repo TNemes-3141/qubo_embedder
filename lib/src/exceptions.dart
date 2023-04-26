@@ -3,6 +3,7 @@ enum InvalidOperation {
   providedValueNotBinary,
   recordLengthLargerThanPossibleCombinations,
   recordIsFull,
+  recordHasNotEnoughCapacity,
   dwaveSamplingLargerThanFourNotSupported,
   minorEmbeddingNotSupported,
 }
@@ -19,6 +20,7 @@ enum DwaveApiError {
   solverNotAvailable,
   qubitInEmbeddingNotFoundInSolverGraph,
   couplerInEmbeddingNotFoundInSolverGraph,
+  requestReturnedCorruptedData
 }
 
 enum ProcessFailed {
@@ -67,6 +69,8 @@ class InvalidOperationException extends QuboEmbedderException {
         return "Requested record length cannot exceed the number of possible combinations.";
       case InvalidOperation.recordIsFull:
         return "Capacity of the record is exhausted.";
+      case InvalidOperation.recordHasNotEnoughCapacity:
+        return "Capacity of the record is not large enough to add the supplied number of entries.";
       case InvalidOperation.dwaveSamplingLargerThanFourNotSupported:
         return "Using the DWave sampler on problem sizes larger than 4 is currently not supported.";
       case InvalidOperation.minorEmbeddingNotSupported:
@@ -121,6 +125,8 @@ class DwaveApiException extends QuboEmbedderException {
         return "Discrepancy in provided solver graph and embedding; physical qubit present in embedding could not be found in the solver graph.";
       case DwaveApiError.couplerInEmbeddingNotFoundInSolverGraph:
         return "Discrepancy in provided solver graph and embedding; coupler referenced in embedding could not be found in the solver graph.";
+      case DwaveApiError.requestReturnedCorruptedData:
+        return "Solution requested from the API contains corrupted data that could not be parsed to solution record entries.";
       default:
         return "Dwave API failed.";
     }

@@ -6,6 +6,8 @@ import 'package:tuple/tuple.dart';
 import './constants.dart';
 import './embedder.dart';
 import './codecs.dart';
+import '../solution_record.dart';
+import '../math.dart';
 import '../exceptions.dart';
 
 int submittedProblems = 0;
@@ -120,7 +122,7 @@ class DwaveApi {
 
     final Map<String, dynamic> jsonBody = {
       "solver": apiSolver,
-      "label": "[QUBO_EMBEDDER] Automized submission $submittedProblems",
+      "label": "[QPU_EMBEDDER] submission n=${embedding.qubitCoeffitients.length} (${embedding.algorithm.name} embedding)",
       "data": {
         "format": "qp",
         "lin": encodedEmbedding.item1,
@@ -149,13 +151,43 @@ class DwaveApi {
     }
   }
 
+  static Future<List<SolutionRecordEntry>> getSolutionsForSubmission(
+      ApiParams params, String submissionId) async {
+    final uri = Uri.https("${params.apiRegion}.$apiDomain",
+        "$apiPath/problems/$submissionId/answer");
+
+    final response = await http.get(uri, headers: {
+      "X-Auth-Token": params.apiToken,
+      "Content-type": "application/json",
+    });
+    _validate(response);
+
+    try {
+      final jsonMap = json.decode(response.body);
+      final decodedSolutions = _decodeSolutionProperties(
+        jsonMap["answer"]["active_variables"],
+        jsonMap["answer"]["solutions"],
+        jsonMap["answer"]["energies"],
+        jsonMap["answer"]["num_occurrences"],
+      );
+
+      return decodedSolutions;
+    } on FormatException {
+      throw NetworkException(response.statusCode, response.body);
+    }
+  }
+
   static void _validate(http.Response response) {
     if (!response.statusCode.isOkStatus()) {
       if (response.statusCode.isUnauthorized()) {
         throw DwaveApiException(DwaveApiError.incorrectApiToken);
       }
-      final decodedBody = json.decode(response.body);
-      throw NetworkException(response.statusCode, decodedBody["error_msg"]);
+      try {
+        final decodedBody = json.decode(response.body);
+        throw NetworkException(response.statusCode, decodedBody["error_msg"]);
+      } on FormatException {
+        throw NetworkException(response.statusCode, response.body);
+      }
     }
   }
 
@@ -171,7 +203,7 @@ class DwaveApi {
       }
       linearBiases[index] = embedding.qubitCoeffitients[physicalQubit]!;
     }
-    final linearEncoded = Encoder.encodeCoeffitients(linearBiases);
+    final linearEncoded = Encoder.encodeDoubles(linearBiases);
 
     final quadraticBiases = List<double>.filled(
         embedding.couplerCoeffitients.keys.length, double.nan);
@@ -188,9 +220,32 @@ class DwaveApi {
       throw DwaveApiException(
           DwaveApiError.couplerInEmbeddingNotFoundInSolverGraph);
     }
-    final quadraticEncoded = Encoder.encodeCoeffitients(quadraticBiases);
+    final quadraticEncoded = Encoder.encodeDoubles(quadraticBiases);
 
     return Tuple2(linearEncoded, quadraticEncoded);
+  }
+
+  static List<SolutionRecordEntry> _decodeSolutionProperties(String actives,
+      String solutions, String energies, String numOccurrences) {
+    final energiesDecoded = Decoder.decodeDoubles(energies);
+    final occurrencesDecoded = Decoder.decodeInts(numOccurrences);
+    final numberOfActives = Decoder.decodeInts(actives).length;
+    final solutionsDecoded = Decoder.decodeBinary(solutions, numberOfActives);
+
+    if (energiesDecoded.length != occurrencesDecoded.length ||
+        energiesDecoded.length != solutionsDecoded.length ||
+        occurrencesDecoded.length != solutionsDecoded.length) {
+      throw DwaveApiException(DwaveApiError.requestReturnedCorruptedData);
+    }
+
+    return List<SolutionRecordEntry>.generate(
+      energiesDecoded.length,
+      (index) => SolutionRecordEntry(
+        energiesDecoded[index],
+        SolutionVector.fromList(solutionsDecoded[index]),
+        occurrencesDecoded[index],
+      ),
+    );
   }
 
   static String _embeddingTypeToString(EmbeddingType type) {

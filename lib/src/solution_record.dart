@@ -21,6 +21,16 @@ class SolutionRecord {
     return _entries.length == capacity;
   }
 
+  bool addAllEntries(Iterable<SolutionRecordEntry> entries) {
+    if (_entries.length > capacity - entries.length) {
+      throw InvalidOperationException(InvalidOperation.recordHasNotEnoughCapacity);
+    }
+
+    _entries.addAll(entries);
+
+    return _entries.length == capacity;
+  }
+
   Iterable<SolutionRecordEntry> entries() sync* {
     for (var entry in _entries) {
       yield entry;
