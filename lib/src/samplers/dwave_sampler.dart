@@ -40,7 +40,15 @@ class DwaveSampler extends Solver {
     }
 
     final graphInfo = await DwaveApi.getSolverGraph(_params, solver);
-    final embedding = Embedder.embedQubo(qubo, graphInfo, EmbeddingType.pseudo);
+    final embedding =
+        Embedder.embedQubo(qubo, graphInfo, EmbeddingAlgorithm.pseudo);
+
+    if (embedding.isEmpty) {
+      throw ProcessFailedException(ProcessFailed.noEmbeddingFound);
+    }
+
+    final submissionId = await DwaveApi.postEmbeddingToSolver(
+        _params, solver, graphInfo, embedding);
 
     final record = SolutionRecord(recordLength);
 

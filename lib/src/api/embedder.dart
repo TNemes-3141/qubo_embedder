@@ -4,42 +4,50 @@ import './dwave_api.dart';
 import '../qubo.dart';
 import '../exceptions.dart';
 
-enum EmbeddingType {
+enum EmbeddingAlgorithm {
   pseudo,
   minor,
 }
 
+enum EmbeddingType {
+  qubo,
+  ising,
+}
+
 class Embedder {
   static Embedding embedQubo(
-      Qubo qubo, SolverGraphInfo graphInfo, EmbeddingType type) {
+      Qubo qubo, SolverGraphInfo graphInfo, EmbeddingAlgorithm type) {
     switch (type) {
-      case EmbeddingType.pseudo:
-        return PseudoEmbedding.create(qubo, graphInfo);
-      case EmbeddingType.minor:
+      case EmbeddingAlgorithm.pseudo:
+        return PseudoEmbedding.createQubo(qubo, graphInfo);
+      case EmbeddingAlgorithm.minor:
       default:
-        return MinorEmbedding.create(qubo, graphInfo);
+        return MinorEmbedding.createQubo(qubo, graphInfo);
     }
   }
 }
 
 abstract class Embedding {
-  final EmbeddingType type;
+  final EmbeddingAlgorithm algorithm;
 
-  Embedding(this.type);
+  Embedding(this.algorithm);
 
   Map<int, double> get qubitCoeffitients;
   Map<List<int>, double> get couplerCoeffitients;
+  EmbeddingType get type;
 
   bool get isEmpty => qubitCoeffitients.isEmpty && couplerCoeffitients.isEmpty;
 }
 
 class PseudoEmbedding extends Embedding {
-  final Map<int, double> lin;
-  final Map<List<int>, double> quad;
+  final Map<int, double> _lin;
+  final Map<List<int>, double> _quad;
+  final EmbeddingType _type;
 
-  PseudoEmbedding._(this.lin, this.quad) : super(EmbeddingType.pseudo);
+  PseudoEmbedding._(this._lin, this._quad, this._type)
+      : super(EmbeddingAlgorithm.pseudo);
 
-  factory PseudoEmbedding.create(Qubo qubo, SolverGraphInfo solverGraph) {
+  factory PseudoEmbedding.createQubo(Qubo qubo, SolverGraphInfo solverGraph) {
     final lin = <int, double>{};
     final quad = <List<int>, double>{};
 
@@ -51,7 +59,7 @@ class PseudoEmbedding extends Embedding {
       }
     }
     if (allQubitsAreZero) {
-      return PseudoEmbedding._(lin, quad);
+      return PseudoEmbedding._(lin, quad, EmbeddingType.qubo);
     }
 
     final Map<int, int> logicalToPhysical = {};
@@ -60,7 +68,9 @@ class PseudoEmbedding extends Embedding {
       value: (_) => <int>{},
     );
     for (var coupler in solverGraph.couplers) {
-      //TODO: Add protection
+      if (coupler.length != 2) {
+        throw DataFormattingException(DataFormatting.edgeNotTwoEntries);
+      }
       memory[coupler[0]]!.add(coupler[1]);
       memory[coupler[1]]!.add(coupler[0]);
     }
@@ -106,27 +116,33 @@ class PseudoEmbedding extends Embedding {
       for (var entry in quad.entries) entry.key..sort(): entry.value
     };
 
-    return PseudoEmbedding._(lin, quadRepaired);
+    return PseudoEmbedding._(lin, quadRepaired, EmbeddingType.qubo);
   }
 
   @override
-  Map<List<int>, double> get couplerCoeffitients => quad;
+  Map<List<int>, double> get couplerCoeffitients => _quad;
   @override
-  Map<int, double> get qubitCoeffitients => lin;
+  Map<int, double> get qubitCoeffitients => _lin;
+  @override
+  EmbeddingType get type => _type;
 }
 
 class MinorEmbedding extends Embedding {
-  final Map<int, double> lin;
-  final Map<List<int>, double> quad;
+  final Map<int, double> _lin;
+  final Map<List<int>, double> _quad;
+  final EmbeddingType _type;
 
-  MinorEmbedding._(this.lin, this.quad) : super(EmbeddingType.minor);
+  MinorEmbedding._(this._lin, this._quad, this._type)
+      : super(EmbeddingAlgorithm.minor);
 
-  factory MinorEmbedding.create(Qubo qubo, SolverGraphInfo solverGraph) =>
+  factory MinorEmbedding.createQubo(Qubo qubo, SolverGraphInfo solverGraph) =>
       throw InvalidOperationException(
           InvalidOperation.minorEmbeddingNotSupported);
 
   @override
-  Map<List<int>, double> get couplerCoeffitients => quad;
+  Map<List<int>, double> get couplerCoeffitients => _quad;
   @override
-  Map<int, double> get qubitCoeffitients => lin;
+  Map<int, double> get qubitCoeffitients => _lin;
+  @override
+  EmbeddingType get type => _type;
 }

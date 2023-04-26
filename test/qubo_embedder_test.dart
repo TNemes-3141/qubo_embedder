@@ -51,19 +51,24 @@ void main() {
 
   test('embedder test', () async {
     final hamiltonian = Hamiltonian.fromList([
-      [-1.0, 0.0, 4.0, 0.0],
-      [0.0, -1.0, 0.0, 4.0],
-      [0.0, 0.0, -1.0, 0.0],
-      [0.0, 0.0, 0.0, -1.0],
+      [-3.0, 2.0, 2.0, 2.0],
+      [0.0, -3.0, 2.0, 2.0],
+      [0.0, 0.0, -3.0, 2.0],
+      [0.0, 0.0, 0.0, -3.0],
     ]);
     final qubo = Qubo.fromHamiltonian(hamiltonian);
 
     const apiRegion = "eu-central-1";
-    const apiToken = "";
+    const apiToken = "DEV-26e55bfa2c93e9c1b22c85a124c9cf10d7b47a5a";
     const params = ApiParams(apiRegion: apiRegion, apiToken: apiToken);
 
     final info = await DwaveApi.getSolverGraph(params, "Advantage_system5.3");
 
-    final embedding = Embedder.embedQubo(qubo, info, EmbeddingType.pseudo);
+    final embedding = Embedder.embedQubo(qubo, info, EmbeddingAlgorithm.pseudo);
+
+    final subId = await DwaveApi.postEmbeddingToSolver(
+        params, "Advantage_system5.3", info, embedding);
+
+    print("");
   });
 }

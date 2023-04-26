@@ -17,6 +17,12 @@ enum DataFormatting {
 enum DwaveApiError {
   incorrectApiToken,
   solverNotAvailable,
+  qubitInEmbeddingNotFoundInSolverGraph,
+  couplerInEmbeddingNotFoundInSolverGraph,
+}
+
+enum ProcessFailed {
+  noEmbeddingFound,
 }
 
 abstract class QuboEmbedderException implements Exception {
@@ -111,6 +117,10 @@ class DwaveApiException extends QuboEmbedderException {
         return "Provided API key is incorrect, nonexistent or does not authorize for the usage of the DWave API.";
       case DwaveApiError.solverNotAvailable:
         return "Provided solver is currently offline or does not exist.";
+      case DwaveApiError.qubitInEmbeddingNotFoundInSolverGraph:
+        return "Discrepancy in provided solver graph and embedding; physical qubit present in embedding could not be found in the solver graph.";
+      case DwaveApiError.couplerInEmbeddingNotFoundInSolverGraph:
+        return "Discrepancy in provided solver graph and embedding; coupler referenced in embedding could not be found in the solver graph.";
       default:
         return "Dwave API failed.";
     }
@@ -141,4 +151,23 @@ class RequiredArgumentNullException extends QuboEmbedderException {
 
   @override
   String get message => "Required argument '$paramName' must not be null.";
+}
+
+class ProcessFailedException extends QuboEmbedderException {
+  final ProcessFailed failedProcess;
+
+  ProcessFailedException(this.failedProcess);
+
+  @override
+  String get exceptionId => "ProcessFailedException";
+
+  @override
+  String get message {
+    switch (failedProcess) {
+      case ProcessFailed.noEmbeddingFound:
+        return "Embedding for submitted problem could not be found or the submitted problem is empty.";
+      default:
+        return "An internal process failed.";
+    }
+  }
 }
