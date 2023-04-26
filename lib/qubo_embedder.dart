@@ -9,3 +9,4 @@ export 'src/exceptions.dart';
 export 'src/api/dwave_api.dart';
 export 'src/api/constants.dart';
 export 'src/api/embedder.dart';
+export 'src/api/codecs.dart';
